@@ -1,51 +1,165 @@
-# NLP
-In the repo i will going to put all the resource related to nlp
-### Text Transformation technique
-1. one hot encoding
-2. bag of word
-3. word2vec
-4. NGrams
-5. TF-IDF
-6. CBOW
-7. AVGWORD2VEC
-8. etc
-#### many other techniques are also there in market if you search there are lots of there but i only put popular or most used ones which can be heandy as well
+# 🧠 Transformer Text Generation with TensorFlow & Keras
 
+This project implements a **Transformer-based text generation model** from scratch using **TensorFlow** and **Keras**.
+It trains on the **WikiText-2** dataset to learn next-word prediction and generate coherent English text sequences.
 
-### TF-IDF -> Term Frequency - Inverse  Frequency
+---
 
-<h4>
-  
-TF-IDF stands for term frequency-inverse document frequency. It's a technique used to measure the importance of words in a document. It's a key tool in information retrieval and natural language processing (NLP). 
-How it works 
-- Term frequency (TF): The number of times a word appears in a document
-- Document frequency (DF): The number of documents that contain the word
-- Inverse document frequency (IDF): Weighs down common words and increases the weight of rare words
-Why it's useful
-- Search engines: TF-IDF is used to rank documents in search results 
-- Machine learning: TF-IDF helps machine learning models read words 
-- Text classification: TF-IDF is used to classify text 
-History 
-The concept of TF-IDF was introduced in the 1970s by Karen Spärck Jones and Stephen Robertson at the University of Cambridge
-In Python 
-**You can use the TfidfVectorizer() method in the sklearn module to compute TF-IDF values** 
-  
-</h4>
+## 🚀 Project Overview
 
-## Term Frequency (TF) Formula  
-\[
-TF(t) = \frac{f_t}{N}
-\]  
-where:  
-- \( f_t \) = Number of times term \( t \) appears in the document  
-- \( N \) = Total number of terms in the document  
+This project demonstrates:
 
-## Inverse Document Frequency (IDF) Formula  
-\[
-IDF(t) = \log \left(\frac{N_d}{df_t} + 1\right)
-\]  
-where:  
-- \( N_d \) = Total number of documents  
-- \( df_t \) = Number of documents containing term \( t \)
+* Building a **Transformer Encoder** model from scratch
+* Understanding **multi-head attention**, **feed-forward layers**, and **embedding scaling**
+* Training a model for **next-word prediction**
+* Generating text autoregressively (like GPT-style models)
 
+---
 
+## 🧩 Architecture
+
+The model follows the **original Transformer Encoder** structure:
+
+* **Embedding Layer** – converts tokens to dense vectors
+* **Positional Scaling** – scales embeddings by √d_model
+* **Multi-Head Self-Attention** – learns contextual relationships
+* **Feed Forward Network (FFN)** – adds non-linearity
+* **Layer Normalization + Residual Connections**
+* **Dense Output Layer** – predicts next token probabilities
+
+---
+
+## 📦 Dataset
+
+**[WikiText-2](https://huggingface.co/datasets/wikitext)** from Hugging Face Datasets.
+
+* Clean, high-quality English text from Wikipedia
+* Used for language modeling and text generation
+
+---
+
+## 🧰 Requirements
+
+Install dependencies:
+
+```bash
+pip install tensorflow datasets scikit-learn numpy
+```
+
+---
+
+## 🧠 Training Pipeline
+
+1. **Load Dataset**
+
+   ```python
+   from datasets import load_dataset
+   dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
+   ```
+
+2. **Tokenize Text**
+
+   ```python
+   from tensorflow.keras.preprocessing.text import Tokenizer
+   tokenizer = Tokenizer(num_words=10000, oov_token="<unk>")
+   tokenizer.fit_on_texts(dataset['train']['text'])
+   ```
+
+3. **Create Sequences**
+
+   * Input: previous 10 words
+   * Output: next word
+
+4. **Train-Test Split**
+
+   ```python
+   from sklearn.model_selection import train_test_split
+   X_main, X_test, y_main, y_test = train_test_split(input_sequences, output_words, test_size=0.2, random_state=42)
+   X_train, X_val, y_train, y_val = train_test_split(X_main, y_main, test_size=0.25, random_state=42)
+   ```
+
+5. **Model Training**
+
+   ```python
+   model.fit(
+       X_train, y_train,
+       validation_data=(X_val, y_val),
+       epochs=10,
+       batch_size=64,
+       callbacks=[EarlyStopping(monitor='val_loss', patience=3)]
+   )
+   ```
+
+6. **Evaluation**
+
+   ```python
+   loss, acc = model.evaluate(X_test, y_test)
+   print(f"Test Accuracy: {acc:.4f}")
+   ```
+
+---
+
+## ✍️ Text Generation
+
+```python
+def generate_text(seed_text, next_words=30):
+    for _ in range(next_words):
+        token_list = tokenizer.texts_to_sequences([seed_text])[0]
+        token_list = pad_sequences([token_list], maxlen=seq_length, padding='pre')
+        predicted = np.argmax(model.predict(token_list, verbose=0))
+        output_word = next((w for w, i in tokenizer.word_index.items() if i == predicted), '')
+        seed_text += " " + output_word
+    return seed_text
+
+print(generate_text("machine learning is"))
+```
+
+---
+
+## 🧪 Results (Example)
+
+After several epochs of training:
+
+```
+Epoch 5/10
+Train Accuracy: ~0.20
+Val Accuracy: ~0.18
+```
+
+Example output:
+
+```
+Input: "machine learning is"
+Generated: "machine learning is a key method used in many artificial intelligence systems"
+```
+
+---
+
+## ⚙️ Model Hyperparameters
+
+| Parameter               | Value          |
+| ----------------------- | -------------- |
+| Embedding Dim (d_model) | 256            |
+| Attention Heads         | 8              |
+| Encoder Layers          | 3              |
+| Feed-Forward Dim        | 1024           |
+| Dropout Rate            | 0.1            |
+| Sequence Length         | 10             |
+| Optimizer               | Adam (lr=1e-4) |
+
+---
+
+## 📈 Future Improvements
+
+* Add **Positional Encoding**
+* Implement **Decoder** for full seq2seq generation
+* Use **beam search** for better output diversity
+* Experiment with **larger datasets** or **domain-specific data**
+
+---
+
+## 🧑‍💻 Author
+
+**Sahim Qazi**
+AI & Deep Learning Enthusiast | Machine Learning Engineer
+💼 Focused on Transformer architectures, LLMs, and Generative AI.
